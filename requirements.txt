@@ -1,0 +1,5 @@
+tabulate
+tensorflow==2.16.1
+numpy==1.23.5
+awswrangler==3.7.3
+lakeapi==0.14.0
