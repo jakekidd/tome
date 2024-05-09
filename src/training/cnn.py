@@ -2,33 +2,41 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
+from tensorflow.keras.utils import Sequence
 
 class CNNModel:
-    def __init__(self):
-        # Initialize any required variables here
+    def __init__(self, db_manager):
+        """
+        Initialize the CNN model with a database manager.
+
+        Args:
+            db_manager (DbManager): The database manager to handle data loading.
+        """
+        self.db_manager = db_manager
         self.model = None
+
+    def fetch_batch(self, batch_size, start_index, end_index):
+        """
+        Fetches a batch of data from the database.
+
+        Args:
+            batch_size (int): The size of the batch to fetch.
+            start_index (int): The index to start fetching data.
+            end_index (int): The index to end fetching data.
+
+        Returns:
+            np.array: Batch of processed data ready for training.
+        """
+        # Query the database to get the batch
+        dataframe = self.db_manager.load_data_batch(batch_size, start_index, end_index)
+        return self.preprocess_data(dataframe)
 
     def preprocess_data(self, df):
         """
         Preprocess the order book data for CNN.
-
-        Args:
-            df (pandas.DataFrame): DataFrame containing the order book data.
-
-        Returns:
-            np.array: Processed data ready for training.
         """
-        # Assuming the DataFrame 'df' has columns for different price levels and volumes
-        # The structure is expected to be like df['bid_price_1'], df['ask_price_1'], df['bid_volume_1'], df['ask_volume_1'], etc.
-        
-        # Reshape data to fit a 2D grid format for CNN input
-        # This is a simple example. Depending on your specific data, you might need to adjust the indices and range.
-        
-        # Number of price levels
-        num_levels = 5  # Adjust this based on how many levels of the order book you have
-        features_per_level = 4  # e.g., bid price, bid volume, ask price, ask volume
-
-        # Create an empty array to hold the reshaped features
+        num_levels = 5
+        features_per_level = 4
         cnn_input = np.zeros((len(df), num_levels, features_per_level))
 
         for i in range(num_levels):
@@ -37,11 +45,8 @@ class CNNModel:
             cnn_input[:, i, 2] = df[f'ask_price_{i+1}']
             cnn_input[:, i, 3] = df[f'ask_volume_{i+1}']
 
-        # Normalize the data if not already done - very important for CNN performance
-        # Simple feature scaling to range [0, 1]
         cnn_input = cnn_input / cnn_input.max(axis=0)
-
-        return cnn_input.reshape(len(df), num_levels, features_per_level, 1)  # Add channel dimension for CNN
+        return cnn_input.reshape(len(df), num_levels, features_per_level, 1)
 
     def build_model(self):
         """
@@ -62,10 +67,18 @@ class CNNModel:
 
         self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-# Example of using this class
-if __name__ == "__main__":
-    cnn = CNNModel()
-    # Assume 'data_frame' is your DataFrame loaded with order book data
-    processed_data = cnn.preprocess_data(data_frame)
-    cnn.build_model()
-    # You can now continue to train the model or further develop this script
+    def train(self, epochs, batch_size):
+        """
+        Trains the CNN model using data fetched in batches.
+        """
+        num_records = self.db_manager.count_records()
+        steps_per_epoch = num_records // batch_size
+
+        for epoch in range(epochs):
+            for step in range(steps_per_epoch):
+                x_batch = self.fetch_batch(batch_size, step*batch_size, (step+1)*batch_size)
+                y_batch = ...  # Get labels for the batch
+                self.model.train_on_batch(x_batch, y_batch)
+            print(f'Epoch {epoch+1}/{epochs} complete.')
+
+# Assume `DbManager` and `data_frame` setup similar to previous examples
