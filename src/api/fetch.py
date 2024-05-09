@@ -38,7 +38,9 @@ class MarketDataFetcher:
             start=start,
             end=end,
             symbols=[self.asset_pair],
-            exchanges=[self.exchange.value]
+            exchanges=[self.exchange.value],
+            use_threads=True,
+            drop_partition_cols=True
         )
         return self.data
 
