@@ -15,7 +15,7 @@ def daily_data_collection():
 
     # Start collecting data from the start date until the end date.
     latest_date = db.get_latest_timestamp()
-    current_date = latest_date if latest_date else START_DATE
+    current_date = latest_date + timedelta(days=1) if latest_date else START_DATE
     while current_date <= END_DATE:
         print(f"Fetching data for {current_date.strftime('%Y-%m-%d')}...")
         
@@ -24,7 +24,11 @@ def daily_data_collection():
         end_datetime = start_datetime + timedelta(days=1)
 
         # Fetch data using the MarketDataFetcher.
-        fetcher.fetch(start_datetime, end_datetime)
+        try:
+            fetcher.fetch(start_datetime, end_datetime)
+        except Exception as e:
+            print("Error fetching data for this round:", e)
+            fetcher.data = fetcher.data.iloc[0:0] # Empty df.
 
         # Print column names
         # print("Column Names:", fetcher.data.columns.tolist())
@@ -40,7 +44,8 @@ def daily_data_collection():
             print(f"No data available for {current_date.strftime('%Y-%m-%d')}.")
 
         # Move to the next day.
-        current_date = db.get_latest_timestamp()
+        current_date += timedelta(days=1) 
+        # current_date = db.get_latest_timestamp()
 
 if __name__ == "__main__":
     daily_data_collection()
