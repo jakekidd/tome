@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from src.api.fetch import MarketDataFetcher, Exchange
-from src.db.manager import DbManager
+from src.db.asset import AssetPairDbManager
 import numpy as np
 import pandas as pd
 
@@ -13,7 +13,7 @@ ASSET_PAIR = "ETH-USDT"
 def daily_data_collection():
     # Create instances of the fetcher and DB manager.
     fetcher = MarketDataFetcher(EXCHANGE, ASSET_PAIR)
-    db = DbManager(EXCHANGE, ASSET_PAIR)
+    db = AssetPairDbManager(EXCHANGE, ASSET_PAIR)
 
     # Start collecting data from the start date until the end date.
     latest_date = db.get_latest_timestamp()
@@ -101,7 +101,7 @@ def imputate(start_date, end_date, db, fetcher):
 def fill_gaps():
     # Create instances of the fetcher and DB manager.
     fetcher = MarketDataFetcher(EXCHANGE, ASSET_PAIR)
-    db = DbManager(EXCHANGE, ASSET_PAIR)
+    db = AssetPairDbManager(EXCHANGE, ASSET_PAIR)
 
     # Define the chunk size for checking gaps.
     chunk_size = timedelta(days=30)  # Check one month at a time.
@@ -143,8 +143,5 @@ def fill_gaps():
         current_date = next_date
 
 if __name__ == "__main__":
-    fill_gaps()
-
-
-if __name__ == "__main__":
     daily_data_collection()
+    # fill_gaps()
