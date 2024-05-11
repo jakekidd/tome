@@ -33,10 +33,11 @@ def daily_data_collection():
             fetcher.data = fetcher.data.iloc[0:0] # Empty df.
 
         # Print column names
-        # print("Column Names:", fetcher.data.columns.tolist())
+        print("Column Names:", fetcher.data.columns.tolist())
 
         # Print the first row
-        # print("First Row:", fetcher.data.iloc[0].to_dict())
+        print("First Row:", fetcher.data.iloc[0].to_dict())
+        exit()
         
         # Check if data was fetched and save it using DbManager.
         if not fetcher.data.empty:
